@@ -1,0 +1,1274 @@
+/* =========================================================
+ * 공부 타이머 — style.css
+ * ---------------------------------------------------------
+ *  1. 디자인 토큰 (색 · 크기 · 애니메이션 시간)
+ *  2. 기본 스타일
+ *  3. 글래스모피즘 공통 클래스
+ *  4. 배경 조명
+ *  5. 메인 레이아웃 & 라벨
+ *  6. 플립 클럭
+ *  7. 시작/정지 버튼 · 상태줄 · 메뉴 버튼
+ *  8. 통계 패널 · 카드 · 계정
+ *  9. 주간 막대 그래프
+ * 10. 월간 캘린더
+ * 11. 토스트 · 데모 배지
+ * 12. 로그인 화면 · 불러오는 중
+ * 13. 마우스 호버 효과 (마우스가 있는 기기에서만)
+ * 14. 반응형 · 모바일 · 접근성
+ * ========================================================= */
+
+/* ---------- 1. 디자인 토큰 ---------- */
+:root {
+  color-scheme: dark;
+
+  /* 색 */
+  --bg: #000000;
+  --text: rgba(255, 255, 255, 0.94);
+  --text-2: rgba(255, 255, 255, 0.62);
+  --text-3: rgba(255, 255, 255, 0.40);
+  --line: rgba(255, 255, 255, 0.07);
+
+  /* 글래스모피즘 */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-bg-hover: rgba(255, 255, 255, 0.13);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border-hover: rgba(255, 255, 255, 0.26);
+  --glass-blur: 20px;
+  --radius: 24px;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* 플립 카드 면 색 (검은 배경 위의 유리와 같은 톤의 불투명 색 — 넘어가는 면이 뒤 숫자를 가려야 하므로 불투명) */
+  --face-top: linear-gradient(180deg, #1d1d20 0%, #161618 100%);
+  --face-bottom: linear-gradient(180deg, #121214 0%, #0e0e10 100%);
+  --digit: #f4f4f6;
+
+  /* 플립 클럭 크기 — 화면을 꽉 채우도록 가로·세로 중 더 빠듯한 쪽에 맞춤
+   *  - 시계 전체 너비 = 카드 너비 × 4.48 (카드 4장 + 카드 사이 간격 + 콜론 영역)
+   *  - --chrome-h : 시계를 뺀 나머지(라벨·버튼·상태줄·여백) 높이
+   *  더 작게/크게 하고 싶으면 --gutter(좌우 여백) 또는 --chrome-h 를 조절하세요. */
+  --vh: 100vh;
+  --gutter: clamp(16px, 4vw, 64px);
+  --chrome-h: 340px;
+  --card-w: max(56px, min(
+    calc((100vw - 2 * var(--gutter)) / 4.48),
+    calc((var(--vh) - var(--chrome-h)) / 1.34)
+  ));
+  --card-h: calc(var(--card-w) * 1.34);
+  --card-gap: calc(var(--card-w) * 0.08);
+  --card-radius: clamp(12px, calc(var(--card-w) * 0.13), 40px);
+
+  /* 플립 애니메이션 시간 (script.js 가 이 값을 읽어 타이밍을 맞춤) */
+  --flip-duration: 0.7s;
+  --flip-half: calc(var(--flip-duration) / 2);
+
+  --font: "Inter", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
+          "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
+}
+
+/* 모바일 주소창 높이를 반영하는 단위를 지원하면 사용 */
+@supports (height: 100dvh) {
+  :root { --vh: 100dvh; }
+}
+
+/* ---------- 2. 기본 스타일 ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+html {
+  -webkit-text-size-adjust: 100%;   /* iOS 가로 모드에서 글자가 멋대로 커지지 않게 */
+  text-size-adjust: 100%;
+  touch-action: manipulation;       /* 두 번 탭 확대 방지 (두 손가락 확대는 가능) */
+  overscroll-behavior-y: none;      /* 당겨서 새로고침으로 타이머가 멈추는 일 방지 */
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;      /* 길게 눌러도 메뉴가 뜨지 않게 */
+}
+
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+/* ---------- 3. 글래스모피즘 공통 클래스 ---------- */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- 4. 배경 조명 ----------
+ * 배경은 순수 검정(#000)이고, 그 위에 아주 옅은 흰빛 두 개만 천천히 움직입니다.
+ * 유리(backdrop-filter)가 '비쳐 보이도록' 하는 용도이며, 완전한 검정을 원하면
+ * index.html 의 .ambient 요소를 지우면 됩니다. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient__orb {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0) 62%);
+  will-change: transform;
+}
+
+.ambient__orb--a {
+  top: -38vmax;
+  left: -22vmax;
+  animation: drift-a 38s ease-in-out infinite alternate;
+}
+
+.ambient__orb--b {
+  right: -30vmax;
+  bottom: -42vmax;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0) 62%);
+  animation: drift-b 46s ease-in-out infinite alternate;
+}
+
+@keyframes drift-a { to { transform: translate(14vmax, 10vmax); } }
+@keyframes drift-b { to { transform: translate(-12vmax, -8vmax); } }
+
+/* ---------- 5. 메인 레이아웃 & 라벨 ---------- */
+/* 시계 묶음을 화면 정중앙에 배치 (위쪽 여백은 ··· 버튼 자리) */
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 72px var(--gutter) 32px;
+}
+
+/* 시계와 버튼을 한 묶음으로: inline-flex 라서 너비 = 시계 너비, 버튼은 그 너비로 늘어남 */
+.timer {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(16px, 2.6vh, 28px);
+}
+
+.timer__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.timer__label {
+  margin: 0;
+  font-size: clamp(12px, 0.9vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+}
+
+.timer__date {
+  margin: 0;
+  font-size: clamp(15px, 1.3vw, 20px);
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+/* ---------- 6. 플립 클럭 ---------- */
+.clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clock__group {
+  display: flex;
+  gap: var(--card-gap);
+}
+
+/* 가운데 콜론(:) — 실행 중일 때 천천히 깜빡임 */
+/* 콜론 영역 너비 = 카드 너비 × 0.32 (점 0.08 + 좌우 여백 0.12×2) */
+.clock__colon {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--card-h) * 0.22);
+  padding: 0 calc(var(--card-w) * 0.12);
+}
+
+.clock__colon i {
+  display: block;
+  width: calc(var(--card-w) * 0.08);
+  height: calc(var(--card-w) * 0.08);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.3s;
+}
+
+.is-running .clock__colon i {
+  background: rgba(255, 255, 255, 0.9);
+  animation: colon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes colon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* 숫자 카드 1개 = 정적인 윗면/아랫면 + 넘어가는 윗날개/아랫날개 */
+.flip {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--card-radius);
+  perspective: calc(var(--card-h) * 4);
+  font-size: calc(var(--card-h) * 0.7);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--digit);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(255, 255, 255, 0.025);
+  user-select: none;
+}
+
+/* 유리 테두리 (모든 면 위에 고정) */
+.flip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border: 1px solid var(--glass-border);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* 가운데 접히는 선 */
+.flip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  z-index: 10;
+  height: 2px;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+.flip__face {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* 숫자 하나를 카드 전체 높이로 그린 뒤, 윗면/아랫면이 각자 절반만 보여줌 */
+.flip__face > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.flip__top,
+.flip__flap-top {
+  top: 0;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+  background: var(--face-top);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.flip__bottom,
+.flip__flap-bottom {
+  bottom: 0;
+  border-radius: 0 0 var(--card-radius) var(--card-radius);
+  background: var(--face-bottom);
+}
+
+.flip__top > span,
+.flip__flap-top > span { top: 0; }
+
+.flip__bottom > span,
+.flip__flap-bottom > span { bottom: 0; }
+
+/* 유리 광택 (윗면 대각선 하이라이트) */
+.flip__top::before,
+.flip__flap-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
+.flip__top,
+.flip__bottom { z-index: 1; }
+
+/* 윗날개: 아래쪽 가장자리를 축으로 앞으로 넘어감 (0° → -90°) */
+.flip__flap-top {
+  z-index: 3;
+  transform-origin: 50% 100%;
+  transform: rotateX(0deg);
+}
+
+/* 아랫날개: 위쪽 가장자리를 축으로 내려옴 (90° → 0°) */
+.flip__flap-bottom {
+  z-index: 4;
+  transform-origin: 50% 0%;
+  transform: rotateX(90deg);
+}
+
+/* 넘어갈 때 생기는 그림자 */
+.flip__flap-top::after,
+.flip__flap-bottom::after,
+.flip__bottom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.flip__flap-top::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%);
+  opacity: 0;
+}
+
+.flip__flap-bottom::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.2) 100%);
+  opacity: 1;
+}
+
+.flip__bottom::after {
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+}
+
+/* --- 플립 진행 상태 ---
+ * transition 은 .is-flipping 상태에만 정의되어 있어서,
+ * 클래스를 떼면 날개가 애니메이션 없이 즉시 원위치로 돌아갑니다. */
+.flip.is-flipping .flip__flap-top {
+  transform: rotateX(-90deg);
+  transition: transform var(--flip-half) cubic-bezier(0.55, 0.06, 0.68, 0.19);
+}
+
+.flip.is-flipping .flip__flap-bottom {
+  transform: rotateX(0deg);
+  transition: transform var(--flip-half) cubic-bezier(0.22, 0.61, 0.36, 1) var(--flip-half);
+}
+
+.flip.is-flipping .flip__flap-top::after {
+  opacity: 1;
+  transition: opacity var(--flip-half) ease-in;
+}
+
+.flip.is-flipping .flip__flap-bottom::after {
+  opacity: 0;
+  transition: opacity var(--flip-half) ease-out var(--flip-half);
+}
+
+.flip.is-flipping .flip__bottom::after {
+  opacity: 1;
+  transition: opacity var(--flip-half) ease-in;
+}
+
+/* ---------- 7. 시작/정지 버튼 · 상태줄 · 메뉴 버튼 ---------- */
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: clamp(56px, 8vh, 84px);
+  padding: 0 24px;
+  font-size: clamp(16px, 1.5vw, 22px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+}
+
+.toggle-btn:active { transform: scale(0.985); }
+
+.toggle-btn__icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.toggle-btn__icon--stop { display: none; }
+.is-running .toggle-btn__icon--play { display: none; }
+.is-running .toggle-btn__icon--stop { display: block; }
+
+/* 실행 중에는 버튼이 살짝 더 밝은 유리 */
+.is-running .toggle-btn { background: rgba(255, 255, 255, 0.11); }
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 20px;
+  margin: -4px 0 0;
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.status__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.is-running .status { color: var(--text-2); }
+
+.is-running .status__dot {
+  background: #ffffff;
+  animation: dot-pulse 2s ease-out infinite;
+}
+
+@keyframes dot-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+}
+
+/* 우측 상단 ··· 버튼 */
+.menu-btn {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.25s, border-color 0.25s, transform 0.15s;
+}
+
+.menu-btn:active { transform: scale(0.95); }
+
+.menu-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+/* ---------- 8. 통계 패널 · 카드 ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.overlay.is-open { opacity: 1; }
+
+.panel {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, calc(100vw - 24px));
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  transform: translateX(calc(100% + 32px));
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel.is-open { transform: translateX(0); }
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px 24px;
+}
+
+.panel__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.panel__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 16px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.panel__foot {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+/* 아이콘 버튼 (닫기, 이전/다음) */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.icon-btn:active { background: rgba(255, 255, 255, 0.08); }
+
+.icon-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+  background: transparent;
+  border-color: transparent;
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-btn--sm { width: 32px; height: 32px; }
+.icon-btn--sm svg { width: 18px; height: 18px; }
+
+.text-btn {
+  flex: none;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.text-btn:disabled { opacity: 0.4; cursor: default; }
+.text-btn--danger { color: var(--text-3); }
+
+.card {
+  padding: 18px 18px 20px;
+}
+
+/* 계정 · 동기화 상태 줄 */
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px 12px 14px;
+}
+
+.account__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.account__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account__email,
+.account__sync {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account__email {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.account__sync {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.account__sync.is-warn { color: #ffc98a; }
+
+.card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card__sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.card__nav {
+  display: flex;
+  gap: 2px;
+  margin: -4px -6px 0 0;
+}
+
+/* 요약 수치 (합계 · 평균 등) */
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 16px 0 0;
+}
+
+.summary dt {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.summary dd {
+  margin: 3px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 9. 주간 막대 그래프 ---------- */
+.chart { margin-top: 18px; }
+
+.chart__plot {
+  position: relative;
+  height: 168px;
+  margin: 26px 0 0 34px; /* 위: 값 라벨 자리, 왼쪽: 눈금 라벨 자리 */
+}
+
+.chart__gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
+
+.chart__gridline.is-base { background: rgba(255, 255, 255, 0.18); }
+
+.chart__gridline span {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: -7px;
+  font-size: 10.5px;
+  line-height: 14px;
+  color: var(--text-3);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.chart__col {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  border-radius: 8px;
+  outline: none;
+  cursor: default;
+}
+
+.chart__col:focus-visible { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.chart__col.is-active { background: rgba(255, 255, 255, 0.04); }
+
+/* 막대: 최대 24px 폭, 끝만 4px 둥글게, 바닥은 직각 */
+.chart__bar {
+  width: min(24px, 56%);
+  border-radius: 4px 4px 0 0;
+  background: rgba(255, 255, 255, 0.3);
+  transition: height 0.7s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s;
+}
+
+.chart__col.is-active .chart__bar,
+.chart__col:focus-visible .chart__bar { background: rgba(255, 255, 255, 0.5); }
+
+.chart__col.is-today .chart__bar { background: rgba(255, 255, 255, 0.92); }
+
+/* 막대 위 값 라벨 (오늘 + 최고값만 표시, 나머지는 툴팁) */
+.chart__value {
+  position: absolute;
+  left: 50%;
+  bottom: var(--h);
+  transform: translate(-50%, -6px);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  transition: opacity 0.15s;
+}
+
+/* 패널을 처음 열 때만 라벨이 서서히 나타남 (실시간 갱신 때는 깜빡이지 않도록) */
+.chart.is-intro .chart__value { animation: fade-in 0.5s ease 0.3s both; }
+
+/* 툴팁 (마우스 올림 / 탭(.is-active) / 키보드 포커스) */
+.chart__tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--h) + 8px);
+  z-index: 5;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(24, 24, 27, 0.96);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.chart__col.is-start .chart__tip { left: 0; transform: translate(0, 4px); }
+.chart__col.is-end .chart__tip { left: auto; right: 0; transform: translate(0, 4px); }
+
+.chart__col.is-active .chart__tip,
+.chart__col:focus-visible .chart__tip { opacity: 1; transform: translate(-50%, 0); }
+.chart__col.is-start.is-active .chart__tip,
+.chart__col.is-start:focus-visible .chart__tip,
+.chart__col.is-end.is-active .chart__tip,
+.chart__col.is-end:focus-visible .chart__tip { transform: translate(0, 0); }
+
+.chart__col.is-active .chart__value,
+.chart__col:focus-visible .chart__value { opacity: 0; }
+
+.chart__x {
+  display: flex;
+  margin: 10px 0 0 34px;
+}
+
+.chart__x span {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.chart__x span.is-today {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@keyframes fade-in { from { opacity: 0; } }
+
+/* ---------- 10. 월간 캘린더 ---------- */
+.calendar { margin-top: 18px; }
+
+.calendar__weekdays,
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calendar__weekdays {
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* 날짜 칸: 공부 시간이 많을수록 배경이 밝아짐 (--a 값은 script.js 에서 계산) */
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  min-height: 54px;
+  padding: 6px 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, var(--a, 0.03));
+  font-variant-numeric: tabular-nums;
+}
+
+.day--blank { background: transparent; }
+
+.day__num {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.day__time {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-align: center;
+}
+
+.day.is-future { opacity: 0.35; }
+
+/* 오늘 강조 */
+.day.is-today {
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+.day.is-today .day__num {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ---------- 11. 토스트 · 데모 배지 ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(28px, calc(env(safe-area-inset-bottom) + 16px));
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 20px;
+  border-radius: 22px;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 16px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.is-show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.demo-badge {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 20;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* ---------- 12. 로그인 화면 · 불러오는 중 ---------- */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+.boot__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  animation: boot-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes boot-pulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.auth {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+}
+
+.auth__card {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: min(400px, 100%);
+  padding: 32px 24px 28px;
+}
+
+.auth__brand { text-align: center; }
+
+.auth__title {
+  margin: 18px 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth__desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+/* 로고: 작은 플립 클럭 */
+.mini-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-flip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 40px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #1d1d20 0%, #161618 50%, #111113 50%, #0e0e10 100%);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--digit);
+}
+
+.mini-flip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.mini-colon {
+  width: 4px;
+  height: 16px;
+  margin: 0 3px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2.5px) top / 4px 4px no-repeat,
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2.5px) bottom / 4px 4px no-repeat;
+}
+
+/* 로그인 / 회원가입 전환 */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.segmented button {
+  height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.segmented button[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.field__wrap { position: relative; }
+
+/* 입력칸 글자 크기 16px 이상: iOS 에서 입력칸을 누를 때 화면이 확대되지 않게 */
+.field__input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.field__wrap .field__input { padding-right: 76px; }
+
+.field__input::placeholder { color: var(--text-3); }
+
+.field__input:focus {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+/* 브라우저 자동완성 시 노란/파란 배경 대신 어두운 배경 유지 */
+.field__input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 100px #19191b inset;
+  caret-color: #ffffff;
+  transition: background-color 9999s;
+}
+
+.field__toggle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.auth__msg {
+  min-height: 20px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth__msg.is-error { color: #ff9f9f; }
+.auth__msg.is-info { color: var(--text); }
+
+.auth__submit {
+  height: 54px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.25s, border-color 0.25s, transform 0.15s, opacity 0.2s;
+}
+
+.auth__submit:active { transform: scale(0.985); }
+.auth__submit:disabled { opacity: 0.6; cursor: progress; }
+
+.auth__setup {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.auth__setup strong { color: var(--text); font-size: 14px; }
+.auth__setup p { margin: 8px 0 0; }
+
+.auth__setup code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+/* ---------- 13. 마우스 호버 효과 ----------
+ * 터치 기기에서는 탭한 뒤에도 호버 색이 남는 문제가 있어 마우스가 있을 때만 적용 */
+@media (hover: hover) and (pointer: fine) {
+  .toggle-btn:hover,
+  .menu-btn:hover,
+  .auth__submit:hover:not(:disabled) {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+  }
+
+  .toggle-btn:hover { box-shadow: var(--shadow), 0 0 32px rgba(255, 255, 255, 0.06); }
+  .is-running .toggle-btn:hover { background: rgba(255, 255, 255, 0.16); }
+
+  .icon-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .text-btn:hover:not(:disabled) {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .text-btn--danger:hover:not(:disabled) { color: rgba(255, 150, 150, 0.95); }
+
+  .segmented button:hover:not([aria-selected="true"]) { color: var(--text-2); }
+  .field__toggle:hover { color: var(--text); }
+
+  .chart__col:hover .chart__bar { background: rgba(255, 255, 255, 0.5); }
+  .chart__col.is-today:hover .chart__bar { background: rgba(255, 255, 255, 0.92); }
+  .chart__col:hover .chart__tip { opacity: 1; transform: translate(-50%, 0); }
+  .chart__col.is-start:hover .chart__tip,
+  .chart__col.is-end:hover .chart__tip { transform: translate(0, 0); }
+  .chart__col:hover .chart__value { opacity: 0; }
+}
+
+/* ---------- 14. 반응형 · 모바일 · 접근성 ---------- */
+
+/* 손가락으로 누르는 기기: 버튼 터치 영역을 44px 가까이로 */
+@media (pointer: coarse) {
+  .icon-btn { width: 44px; height: 44px; }
+  .icon-btn--sm { width: 40px; height: 40px; }
+  .card__nav { margin: -8px -8px 0 0; }
+  .text-btn { min-height: 44px; }
+}
+
+@media (max-width: 560px) {
+  .panel {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    width: auto;
+  }
+
+  .panel__head { padding: 16px 14px 8px 20px; }
+  .panel__body { padding: 4px 10px 16px; gap: 12px; }
+  .card { padding: 16px 14px 18px; }
+  .summary { gap: 8px 18px; }
+  .summary dd { font-size: 16px; }
+  .chart__plot { height: 150px; }
+  .day { min-height: 50px; border-radius: 10px; }
+  .day__time { font-size: 10px; }
+  .calendar__weekdays, .calendar__grid { gap: 3px; }
+  .account { padding: 10px 6px 10px 12px; }
+  .auth__card { padding: 28px 20px 24px; }
+}
+
+/* 세로가 짧은 화면 (작은 휴대폰): 로그인 카드를 한 화면에 들어오게 촘촘히 */
+@media (max-height: 640px) {
+  .auth { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .auth__card { gap: 14px; padding: 22px 18px 20px; }
+  .auth__title { margin: 10px 0 6px; font-size: 21px; }
+  .auth__desc { font-size: 13px; }
+  .auth__form { gap: 10px; }
+  .field__input { height: 48px; }
+  .field__toggle { top: 4px; }
+  .auth__submit { height: 50px; }
+}
+
+/* 가로로 낮은 화면 (휴대폰 가로 모드): 시계 외 요소를 줄여 시계에 높이를 더 줌 */
+@media (max-height: 480px) and (orientation: landscape) {
+  :root { --chrome-h: 200px; }
+  .stage { padding: 16px var(--gutter) 12px; }
+  .timer { gap: 10px; }
+  .timer__label { display: none; }
+  .toggle-btn { height: 48px; }
+}
+
+/* 움직임 줄이기 설정: 배경·깜빡임 애니메이션만 끔 (플립은 핵심 기능이라 유지) */
+@media (prefers-reduced-motion: reduce) {
+  .ambient__orb,
+  .is-running .clock__colon i,
+  .is-running .status__dot,
+  .boot__dot { animation: none; }
+  .panel, .overlay, .chart__bar { transition-duration: 0.01s; }
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="플립 클럭 스타일의 미니멀 공부 시간 측정기" />
+  <!-- 모바일: 홈 화면에 추가 시 앱처럼 전체 화면, 숫자 자동 전화번호 링크 방지 -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="공부 타이머" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>공부 타이머</title>
+
+  <!-- 폰트: 숫자·영문은 Inter, 한글은 Pretendard (불러오지 못하면 system-ui 로 대체) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-view="boot">
+  <!-- 배경 조명: 유리 질감이 드러나도록 아주 옅은 빛 번짐 (원치 않으면 이 div 삭제) -->
+  <div class="ambient" aria-hidden="true">
+    <span class="ambient__orb ambient__orb--a"></span>
+    <span class="ambient__orb ambient__orb--b"></span>
+  </div>
+
+  <!-- 로그인 상태 확인 중 -->
+  <div class="boot" id="bootView" aria-label="불러오는 중"><span class="boot__dot"></span></div>
+
+  <!-- ===== 로그인 / 회원가입 화면 (로그인 전에만 보임) ===== -->
+  <section class="auth" id="authView" hidden aria-labelledby="authTitle">
+    <div class="auth__card glass">
+      <div class="auth__brand">
+        <!-- 작은 플립 클럭 로고 (장식) -->
+        <div class="mini-clock" aria-hidden="true">
+          <span class="mini-flip">0</span><span class="mini-flip">0</span>
+          <span class="mini-colon"></span>
+          <span class="mini-flip">0</span><span class="mini-flip">0</span>
+        </div>
+        <h1 class="auth__title" id="authTitle">공부 타이머</h1>
+        <p class="auth__desc">로그인하면 휴대폰·태블릿·컴퓨터 어디서든<br />같은 공부 기록을 볼 수 있어요</p>
+      </div>
+
+      <div class="segmented" role="tablist" aria-label="로그인 방식" id="authTabs">
+        <button type="button" role="tab" aria-selected="true" data-mode="login">로그인</button>
+        <button type="button" role="tab" aria-selected="false" data-mode="signup">회원가입</button>
+      </div>
+
+      <form class="auth__form" id="authForm" novalidate>
+        <label class="field">
+          <span class="field__label">이메일</span>
+          <input class="field__input" id="authEmail" type="email" name="email" placeholder="name@example.com"
+                 autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" required />
+        </label>
+        <label class="field">
+          <span class="field__label">비밀번호</span>
+          <span class="field__wrap">
+            <input class="field__input" id="authPassword" type="password" name="password" placeholder="6자 이상"
+                   autocomplete="current-password" minlength="6" required />
+            <button class="field__toggle" id="pwToggle" type="button" aria-label="비밀번호 보기" aria-pressed="false">보기</button>
+          </span>
+        </label>
+
+        <p class="auth__msg" id="authMsg" role="alert" aria-live="assertive"></p>
+
+        <button class="auth__submit glass" id="authSubmit" type="submit">로그인</button>
+      </form>
+
+      <!-- config.js 가 설정되지 않았을 때 보이는 안내 -->
+      <div class="auth__setup" id="authSetup" hidden>
+        <strong>Supabase 연결 설정이 필요해요</strong>
+        <p><code>config.js</code> 파일에 Supabase 프로젝트의 URL과 키를 입력한 뒤 새로고침하세요.</p>
+        <p>설정 없이 둘러보려면 주소 끝에 <code>?demo</code> 를 붙여 데모 모드로 열 수 있어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 우측 상단 메뉴(통계) 버튼 -->
+  <button class="menu-btn glass" id="menuBtn" type="button" hidden
+          aria-label="통계 보기" aria-haspopup="dialog" aria-controls="statsPanel" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" />
+    </svg>
+  </button>
+
+  <main class="stage" id="stage" hidden>
+    <div class="timer">
+      <!-- 상단 라벨: 오늘 날짜 -->
+      <header class="timer__head">
+        <p class="timer__label">오늘의 공부 시간</p>
+        <p class="timer__date" id="todayLabel"></p>
+      </header>
+
+      <!-- 플립 클럭 (시 : 분) — 각 숫자 카드는 script.js 에서 생성 -->
+      <div class="clock" id="clock" role="timer" aria-live="off" aria-label="오늘 공부 시간 0시간 0분">
+        <div class="clock__group" data-group="hours"></div>
+        <div class="clock__colon" aria-hidden="true"><i></i><i></i></div>
+        <div class="clock__group" data-group="minutes"></div>
+      </div>
+
+      <!-- 시작 / 정지 버튼 (플립 클럭과 같은 가로 길이) -->
+      <button class="toggle-btn glass" id="toggleBtn" type="button" aria-pressed="false">
+        <svg class="toggle-btn__icon toggle-btn__icon--play" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+        </svg>
+        <svg class="toggle-btn__icon toggle-btn__icon--stop" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="6.5" y="6.5" width="11" height="11" rx="2.5" />
+        </svg>
+        <span class="toggle-btn__text" id="toggleText">시작</span>
+      </button>
+
+      <!-- 상태 표시줄 -->
+      <p class="status" id="status" aria-live="polite">
+        <span class="status__dot" aria-hidden="true"></span>
+        <span id="statusText"></span>
+      </p>
+    </div>
+  </main>
+
+  <!-- ===== 통계 패널 (··· 버튼으로 열림) ===== -->
+  <div class="overlay" id="overlay" hidden></div>
+  <aside class="panel glass" id="statsPanel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" hidden>
+    <header class="panel__head">
+      <h2 class="panel__title" id="panelTitle">통계</h2>
+      <button class="icon-btn" id="closeBtn" type="button" aria-label="통계 닫기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </header>
+
+    <div class="panel__body">
+      <!-- 0) 계정 · 동기화 상태 -->
+      <section class="account glass" aria-label="계정">
+        <span class="account__avatar" id="accountAvatar" aria-hidden="true"></span>
+        <div class="account__info">
+          <p class="account__email" id="accountEmail"></p>
+          <p class="account__sync" id="syncStatus"></p>
+        </div>
+        <button class="text-btn" id="logoutBtn" type="button">로그아웃</button>
+      </section>
+
+      <!-- 1) 주간 그래프 -->
+      <section class="card glass" aria-labelledby="weekTitle">
+        <div class="card__head">
+          <div>
+            <h3 class="card__title" id="weekTitle">이번 주</h3>
+            <p class="card__sub" id="weekRange"></p>
+          </div>
+          <div class="card__nav">
+            <button class="icon-btn icon-btn--sm" id="weekPrev" type="button" aria-label="이전 주">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            </button>
+            <button class="icon-btn icon-btn--sm" id="weekNext" type="button" aria-label="다음 주">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </button>
+          </div>
+        </div>
+        <dl class="summary" id="weekSummary"></dl>
+        <div class="chart" id="weekChart"></div>
+      </section>
+
+      <!-- 2) 월간 캘린더 -->
+      <section class="card glass" aria-labelledby="monthTitle">
+        <div class="card__head">
+          <div>
+            <h3 class="card__title" id="monthTitle"></h3>
+            <p class="card__sub" id="monthSub"></p>
+          </div>
+          <div class="card__nav">
+            <button class="icon-btn icon-btn--sm" id="monthPrev" type="button" aria-label="이전 달">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            </button>
+            <button class="icon-btn icon-btn--sm" id="monthNext" type="button" aria-label="다음 달">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </button>
+          </div>
+        </div>
+        <dl class="summary" id="monthSummary"></dl>
+        <div class="calendar">
+          <div class="calendar__weekdays" aria-hidden="true">
+            <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+          </div>
+          <div class="calendar__grid" id="calendarGrid"></div>
+        </div>
+      </section>
+
+      <footer class="panel__foot">
+        <button class="text-btn text-btn--danger" id="resetBtn" type="button">기록 초기화</button>
+      </footer>
+    </div>
+  </aside>
+
+  <!-- 알림 토스트 -->
+  <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Supabase 클라이언트 → 연결 설정 → 앱 (이 순서대로 실행됨) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+  <script src="config.js" defer></script>
+  <script src="script.js" defer></script>
+</body>
+</html>
