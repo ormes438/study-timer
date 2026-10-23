@@ -2,6 +2,7 @@
  * 공부 타이머 — style.css
  * ---------------------------------------------------------
  *  1. 디자인 토큰 (색 · 크기 · 애니메이션 시간)
+ *     1-1. 라이트 테마 색 (data-theme="light" 일 때 덮어씀)
  *  2. 기본 스타일
  *  3. 글래스모피즘 공통 클래스
  *  4. 배경 조명
@@ -15,32 +16,85 @@
  * 12. 로그인 화면 · 불러오는 중
  * 13. 마우스 호버 효과 (마우스가 있는 기기에서만)
  * 14. 반응형 · 모바일 · 접근성
+ * 15. 테마 전환 토글 (좌측 상단)
  * ========================================================= */
 
 /* ---------- 1. 디자인 토큰 ---------- */
+/* 기본값 = 다크 테마. 색을 바꾸고 싶으면 여기(다크)와 1-1(라이트)의 값만 고치면 됩니다. */
 :root {
   color-scheme: dark;
 
   /* 색 */
+  --ink: 255, 255, 255;                 /* 글자·선·막대 등에 쓰는 '전경색' (R, G, B) — 다크는 흰색 */
   --bg: #000000;
-  --text: rgba(255, 255, 255, 0.94);
-  --text-2: rgba(255, 255, 255, 0.62);
-  --text-3: rgba(255, 255, 255, 0.40);
-  --line: rgba(255, 255, 255, 0.07);
+  --text: rgba(var(--ink), 0.94);
+  --text-2: rgba(var(--ink), 0.62);
+  --text-3: rgba(var(--ink), 0.40);
+  --line: rgba(var(--ink), 0.07);
+  --error: #ff9f9f;
+  --warn: #ffc98a;
+  --danger: rgba(255, 150, 150, 0.95);
 
-  /* 글래스모피즘 */
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-bg-hover: rgba(255, 255, 255, 0.13);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-border-hover: rgba(255, 255, 255, 0.26);
-  --glass-blur: 20px;
+  /* 글래스모피즘 (아이폰 스타일)
+   *  - 면: 위는 조금 밝고 아래로 갈수록 투명해지는 유리
+   *  - 테두리(rim): 빛이 왼쪽 위에서 비치는 것처럼 모서리만 반짝이는 얇은 선
+   *  - 안쪽 빛: 위 가장자리 반사광 + 은은한 내부 광택 */
+  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
+  --glass-bg-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.18);
+  --glass-rim: linear-gradient(140deg,
+    rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.12) 26%,
+    rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.1) 80%, rgba(255, 255, 255, 0.32) 100%);
+  --glass-blur: 28px;
+  --glass-saturate: 180%;
   --radius: 24px;
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow:
+    0 16px 40px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.22),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05),
+    inset 0 0 28px rgba(255, 255, 255, 0.035);
 
-  /* 플립 카드 면 색 (검은 배경 위의 유리와 같은 톤의 불투명 색 — 넘어가는 면이 뒤 숫자를 가려야 하므로 불투명) */
-  --face-top: linear-gradient(180deg, #1d1d20 0%, #161618 100%);
-  --face-bottom: linear-gradient(180deg, #121214 0%, #0e0e10 100%);
-  --digit: #f4f4f6;
+  /* 그 밖의 면 색 */
+  --panel-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%); /* 통계 패널 */
+  --overlay-bg: rgba(0, 0, 0, 0.5);               /* 패널 뒤 어둡게 */
+  --tip-bg: rgba(30, 30, 36, 0.86);               /* 그래프 툴팁 */
+  --tip-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --running-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.1) 100%); /* 실행 중 시작/정지 버튼 */
+  --running-bg-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.14) 100%);
+  --seg-on-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.1) 100%); /* 로그인/회원가입 선택된 탭 */
+  --seg-on-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.25);
+  --thumb-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.12) 100%); /* 테마 토글 동그라미 */
+  --thumb-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --autofill-bg: #1c1c22;
+  --heat: 1;                                      /* 캘린더 칸 진하기 배율 */
+
+  /* 배경 빛 (아이폰 배경화면처럼 유리 뒤에 비치는 은은한 색). 흑백으로 두려면 세 값을 rgba(255,255,255,0.07) 등으로 */
+  --orb-a: rgba(72, 104, 255, 0.26);              /* 블루 */
+  --orb-b: rgba(156, 96, 255, 0.2);               /* 퍼플 */
+  --orb-c: rgba(32, 196, 196, 0.12);              /* 청록 */
+  /* 상단 모서리 조명 (왼쪽 위가 주광원 → 유리 테두리 반짝임 방향과 일치). 끄려면 둘 다 transparent */
+  --light-a: rgba(225, 235, 255, 0.16);           /* 왼쪽 위 */
+  --light-b: rgba(225, 235, 255, 0.07);           /* 오른쪽 위 */
+
+  /* 플립 카드: 반투명 유리 면 + 넘어가는 날개(잠깐 보이는 면)는 뒤 숫자를 가리도록 불투명 */
+  --face-top: linear-gradient(180deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0.09) 100%);
+  --face-bottom: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --flap-top-bg: linear-gradient(180deg, #2a2b34 0%, #1e1f27 100%);
+  --flap-bottom-bg: linear-gradient(180deg, #16171d 0%, #111217 100%);
+  --face-hl: rgba(255, 255, 255, 0.28);           /* 윗면 맨 위 반사광 */
+  --face-sheen: rgba(255, 255, 255, 0.12);        /* 윗면 왼쪽 위 광택 */
+  --mini-face: linear-gradient(180deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 100%);
+  --digit: #f6f6f8;
+  --digit-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  --hinge: rgba(0, 0, 0, 0.55);                   /* 가운데 접히는 선 */
+  --hinge-hl: rgba(255, 255, 255, 0.07);
+  --flip-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 24px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shade-fall: rgba(0, 0, 0, 0.6);               /* 넘어가는 날개의 그림자 */
+  --shade-rise-from: rgba(0, 0, 0, 0.65);
+  --shade-rise-to: rgba(0, 0, 0, 0.2);
+  --shade-under: rgba(0, 0, 0, 0.4);
 
   /* 플립 클럭 크기 — 화면을 꽉 채우도록 가로·세로 중 더 빠듯한 쪽에 맞춤
    *  - 시계 전체 너비 = 카드 너비 × 4.48 (카드 4장 + 카드 사이 간격 + 콜론 영역)
@@ -69,6 +123,77 @@
 @supports (height: 100dvh) {
   :root { --vh: 100dvh; }
 }
+
+/* ---------- 1-1. 라이트 테마 색 ----------
+ * <html data-theme="light"> 일 때 위의 색 값만 바꿔 끼웁니다. (크기·애니메이션은 그대로) */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --ink: 0, 0, 0;                       /* 라이트는 전경색이 검정 */
+  --bg: #ffffff;
+  --text: rgba(0, 0, 0, 0.87);
+  --text-2: rgba(0, 0, 0, 0.6);
+  --text-3: rgba(0, 0, 0, 0.48);
+  --error: #d33a3a;
+  --warn: #b36200;
+  --danger: #d33a3a;
+
+  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.42) 100%);
+  --glass-bg-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.6) 100%);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-hover: rgba(0, 0, 0, 0.12);
+  --glass-rim: linear-gradient(140deg,
+    rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.55) 30%,
+    rgba(255, 255, 255, 0.2) 60%, rgba(255, 255, 255, 0.85) 100%);
+  --shadow:
+    0 16px 40px rgba(40, 50, 90, 0.1),
+    0 2px 6px rgba(40, 50, 90, 0.06),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.5),
+    inset 0 0 24px rgba(255, 255, 255, 0.35);
+
+  --panel-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  --overlay-bg: rgba(20, 24, 40, 0.14);
+  --tip-bg: rgba(255, 255, 255, 0.9);
+  --tip-shadow: 0 8px 24px rgba(40, 50, 90, 0.14), inset 0 1px 0 rgba(255, 255, 255, 1);
+  --running-bg: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)),
+                linear-gradient(160deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.35) 100%);
+  --running-bg-hover: linear-gradient(rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0.07)),
+                      linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.45) 100%);
+  --seg-on-bg: linear-gradient(160deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  --seg-on-shadow: 0 2px 8px rgba(40, 50, 90, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff;
+  --thumb-bg: linear-gradient(160deg, #ffffff 0%, rgba(255, 255, 255, 0.85) 100%);
+  --thumb-shadow: 0 2px 8px rgba(40, 50, 90, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff;
+  --autofill-bg: #f3f3f7;
+  --heat: 0.75;
+
+  --orb-a: rgba(110, 170, 255, 0.42);             /* 하늘색 */
+  --orb-b: rgba(255, 145, 195, 0.32);             /* 핑크 */
+  --orb-c: rgba(165, 135, 255, 0.3);              /* 라벤더 */
+  --light-a: rgba(255, 228, 190, 0.45);           /* 왼쪽 위: 따뜻한 햇살 */
+  --light-b: rgba(255, 236, 210, 0.25);           /* 오른쪽 위 */
+
+  --face-top: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.66) 100%);
+  --face-bottom: linear-gradient(180deg, rgba(255, 255, 255, 0.56) 0%, rgba(255, 255, 255, 0.44) 100%);
+  --flap-top-bg: linear-gradient(180deg, #ffffff 0%, #f6f6fb 100%);
+  --flap-bottom-bg: linear-gradient(180deg, #f1f1f7 0%, #ebebf3 100%);
+  --face-hl: rgba(255, 255, 255, 1);
+  --face-sheen: rgba(255, 255, 255, 0.6);
+  --mini-face: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.66) 50%, rgba(255, 255, 255, 0.56) 50%, rgba(255, 255, 255, 0.44) 100%);
+  --digit: #1c1c1f;
+  --digit-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  --hinge: rgba(0, 0, 0, 0.08);
+  --hinge-hl: rgba(255, 255, 255, 0.8);
+  --flip-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 20px 44px rgba(40, 50, 90, 0.14), 0 3px 8px rgba(40, 50, 90, 0.08);
+  --shade-fall: rgba(0, 0, 0, 0.14);
+  --shade-rise-from: rgba(0, 0, 0, 0.16);
+  --shade-rise-to: rgba(0, 0, 0, 0.03);
+  --shade-under: rgba(0, 0, 0, 0.08);
+}
+
+/* 테마를 바꿀 때 화면 전체가 부드럽게 바뀌는 시간 (지원 브라우저만) */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.35s; }
 
 /* ---------- 2. 기본 스타일 ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -106,22 +231,39 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline: 2px solid rgba(var(--ink), 0.7);
   outline-offset: 3px;
 }
 
 /* ---------- 3. 글래스모피즘 공통 클래스 ---------- */
 .glass {
+  position: relative;                 /* 아래 반짝이는 테두리(::before)의 기준 (고정 위치 요소는 각자 fixed 로 덮어씀) */
   background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
+/* 빛을 받는 유리 가장자리: 모서리 쪽만 밝게 반짝이는 1px 그라데이션 테두리 */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--glass-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
 /* ---------- 4. 배경 조명 ----------
  * 배경은 순수 검정(#000)이고, 그 위에 아주 옅은 흰빛 두 개만 천천히 움직입니다.
+ * (라이트 테마에서는 흰 배경 위의 옅은 회색 빛)
  * 유리(backdrop-filter)가 '비쳐 보이도록' 하는 용도이며, 완전한 검정을 원하면
  * index.html 의 .ambient 요소를 지우면 됩니다. */
 .ambient {
@@ -137,25 +279,61 @@ button {
   width: 70vmax;
   height: 70vmax;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0) 62%);
   will-change: transform;
 }
 
+/* 왼쪽 위 */
 .ambient__orb--a {
-  top: -38vmax;
-  left: -22vmax;
+  top: -30vmax;
+  left: -24vmax;
+  background: radial-gradient(circle, var(--orb-a) 0%, transparent 62%);
   animation: drift-a 38s ease-in-out infinite alternate;
 }
 
+/* 오른쪽 아래 */
 .ambient__orb--b {
-  right: -30vmax;
-  bottom: -42vmax;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0) 62%);
+  right: -28vmax;
+  bottom: -36vmax;
+  background: radial-gradient(circle, var(--orb-b) 0%, transparent 62%);
   animation: drift-b 46s ease-in-out infinite alternate;
+}
+
+/* 시계 뒤쪽 (유리 카드에 색이 은은하게 비치도록) */
+.ambient__orb--c {
+  top: calc(50% - 30vmax);
+  right: -12vmax;
+  width: 60vmax;
+  height: 60vmax;
+  background: radial-gradient(circle, var(--orb-c) 0%, transparent 62%);
+  animation: drift-c 54s ease-in-out infinite alternate;
 }
 
 @keyframes drift-a { to { transform: translate(14vmax, 10vmax); } }
 @keyframes drift-b { to { transform: translate(-12vmax, -8vmax); } }
+@keyframes drift-c { to { transform: translate(-22vmax, 6vmax); } }
+
+/* 상단 모서리 조명: 화면 위쪽 모서리에서 은은하게 내려오는 빛 (유리가 빛을 받는 느낌) */
+.ambient::before,
+.ambient::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+}
+
+.ambient::before {
+  left: 0;
+  width: 85vmax;
+  height: 60vmax;
+  background: radial-gradient(ellipse 100% 100% at 0% 0%, var(--light-a) 0%, transparent 60%);
+}
+
+.ambient::after {
+  right: 0;
+  width: 60vmax;
+  height: 45vmax;
+  background: radial-gradient(ellipse 100% 100% at 100% 0%, var(--light-b) 0%, transparent 60%);
+}
 
 /* ---------- 5. 메인 레이아웃 & 라벨 ---------- */
 /* 시계 묶음을 화면 정중앙에 배치 (위쪽 여백은 ··· 버튼 자리) */
@@ -227,12 +405,12 @@ button {
   width: calc(var(--card-w) * 0.08);
   height: calc(var(--card-w) * 0.08);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(var(--ink), 0.5);
   transition: background 0.3s;
 }
 
 .is-running .clock__colon i {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(var(--ink), 0.9);
   animation: colon-pulse 2s ease-in-out infinite;
 }
 
@@ -241,32 +419,37 @@ button {
   50% { opacity: 0.2; }
 }
 
-/* 숫자 카드 1개 = 정적인 윗면/아랫면 + 넘어가는 윗날개/아랫날개 */
+/* 숫자 카드 1개 = 정적인 윗면/아랫면 + 넘어가는 윗날개/아랫날개
+ * 카드 자체가 뒤쪽 배경을 흐리게 비추는 유리(backdrop-filter)이고, 면은 반투명 */
 .flip {
   position: relative;
   width: var(--card-w);
   height: var(--card-h);
   border-radius: var(--card-radius);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   perspective: calc(var(--card-h) * 4);
   font-size: calc(var(--card-h) * 0.7);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   color: var(--digit);
-  box-shadow:
-    0 24px 48px rgba(0, 0, 0, 0.55),
-    0 0 40px rgba(255, 255, 255, 0.025);
+  box-shadow: var(--flip-shadow);
   user-select: none;
 }
 
-/* 유리 테두리 (모든 면 위에 고정) */
+/* 빛을 받는 유리 테두리 (모든 면 위에 고정) — .glass::before 와 같은 방식 */
 .flip::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 10;
-  border: 1px solid var(--glass-border);
+  padding: 1px;
   border-radius: inherit;
+  background: var(--glass-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   pointer-events: none;
 }
 
@@ -280,8 +463,8 @@ button {
   z-index: 10;
   height: 2px;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.85);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--hinge);
+  box-shadow: 0 1px 0 var(--hinge-hl);
   pointer-events: none;
 }
 
@@ -305,7 +488,7 @@ button {
   align-items: center;
   justify-content: center;
   line-height: 1;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  text-shadow: var(--digit-shadow);
 }
 
 .flip__top,
@@ -313,7 +496,7 @@ button {
   top: 0;
   border-radius: var(--card-radius) var(--card-radius) 0 0;
   background: var(--face-top);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 var(--face-hl);
 }
 
 .flip__bottom,
@@ -329,13 +512,23 @@ button {
 .flip__bottom > span,
 .flip__flap-bottom > span { bottom: 0; }
 
-/* 유리 광택 (윗면 대각선 하이라이트) */
+/* 넘어가는 날개: 평소엔 숨겨 두고(반투명 면이 겹쳐 보이지 않게) 넘어갈 때만 불투명하게 나타남 */
+.flip__flap-top { background: var(--flap-top-bg); }
+.flip__flap-bottom { background: var(--flap-bottom-bg); }
+
+.flip__flap-top,
+.flip__flap-bottom { visibility: hidden; }
+
+.flip.is-flipping .flip__flap-top,
+.flip.is-flipping .flip__flap-bottom { visibility: visible; }
+
+/* 유리 광택 (윗면 왼쪽 위에서 비치는 반사광) */
 .flip__top::before,
 .flip__flap-top::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 45%);
+  background: radial-gradient(120% 90% at 15% 0%, var(--face-sheen) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -367,17 +560,17 @@ button {
 }
 
 .flip__flap-top::after {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--shade-fall) 100%);
   opacity: 0;
 }
 
 .flip__flap-bottom::after {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.2) 100%);
+  background: linear-gradient(180deg, var(--shade-rise-from) 0%, var(--shade-rise-to) 100%);
   opacity: 1;
 }
 
 .flip__bottom::after {
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--shade-under);
   opacity: 0;
 }
 
@@ -425,7 +618,7 @@ button {
   transition: background 0.25s ease, border-color 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
 }
 
-.toggle-btn:active { transform: scale(0.985); }
+.toggle-btn:active { transform: scale(0.975); }
 
 .toggle-btn__icon {
   width: 18px;
@@ -437,8 +630,8 @@ button {
 .is-running .toggle-btn__icon--play { display: none; }
 .is-running .toggle-btn__icon--stop { display: block; }
 
-/* 실행 중에는 버튼이 살짝 더 밝은 유리 */
-.is-running .toggle-btn { background: rgba(255, 255, 255, 0.11); }
+/* 실행 중에는 버튼 색이 살짝 달라짐 */
+.is-running .toggle-btn { background: var(--running-bg); }
 
 .status {
   display: flex;
@@ -457,19 +650,19 @@ button {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(var(--ink), 0.28);
 }
 
 .is-running .status { color: var(--text-2); }
 
 .is-running .status__dot {
-  background: #ffffff;
+  background: rgb(var(--ink));
   animation: dot-pulse 2s ease-out infinite;
 }
 
 @keyframes dot-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55); }
-  70%, 100% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(var(--ink), 0.5); }
+  70%, 100% { box-shadow: 0 0 0 8px rgba(var(--ink), 0); }
 }
 
 /* 우측 상단 ··· 버튼 */
@@ -501,7 +694,7 @@ button {
   position: fixed;
   inset: 0;
   z-index: 30;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-bg);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   opacity: 0;
@@ -519,7 +712,7 @@ button {
   display: flex;
   flex-direction: column;
   width: min(460px, calc(100vw - 24px));
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--panel-bg);
   overflow: hidden;
   transform: translateX(calc(100% + 32px));
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
@@ -550,7 +743,7 @@ button {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(var(--ink), 0.15) transparent;
 }
 
 .panel__foot {
@@ -573,7 +766,7 @@ button {
   transition: background 0.2s, border-color 0.2s, opacity 0.2s;
 }
 
-.icon-btn:active { background: rgba(255, 255, 255, 0.08); }
+.icon-btn:active { background: rgba(var(--ink), 0.08); }
 
 .icon-btn:disabled {
   opacity: 0.25;
@@ -630,7 +823,7 @@ button {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(var(--ink), 0.12);
   font-size: 15px;
   font-weight: 600;
 }
@@ -659,7 +852,7 @@ button {
   color: var(--text-3);
 }
 
-.account__sync.is-warn { color: #ffc98a; }
+.account__sync.is-warn { color: var(--warn); }
 
 .card__head {
   display: flex;
@@ -724,7 +917,7 @@ button {
   background: var(--line);
 }
 
-.chart__gridline.is-base { background: rgba(255, 255, 255, 0.18); }
+.chart__gridline.is-base { background: rgba(var(--ink), 0.18); }
 
 .chart__gridline span {
   position: absolute;
@@ -755,21 +948,21 @@ button {
   cursor: default;
 }
 
-.chart__col:focus-visible { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
-.chart__col.is-active { background: rgba(255, 255, 255, 0.04); }
+.chart__col:focus-visible { box-shadow: inset 0 0 0 1px rgba(var(--ink), 0.35); }
+.chart__col.is-active { background: rgba(var(--ink), 0.04); }
 
 /* 막대: 최대 24px 폭, 끝만 4px 둥글게, 바닥은 직각 */
 .chart__bar {
   width: min(24px, 56%);
   border-radius: 4px 4px 0 0;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(var(--ink), 0.3);
   transition: height 0.7s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s;
 }
 
 .chart__col.is-active .chart__bar,
-.chart__col:focus-visible .chart__bar { background: rgba(255, 255, 255, 0.5); }
+.chart__col:focus-visible .chart__bar { background: rgba(var(--ink), 0.5); }
 
-.chart__col.is-today .chart__bar { background: rgba(255, 255, 255, 0.92); }
+.chart__col.is-today .chart__bar { background: rgba(var(--ink), 0.9); }
 
 /* 막대 위 값 라벨 (오늘 + 최고값만 표시, 나머지는 툴팁) */
 .chart__value {
@@ -795,10 +988,12 @@ button {
   bottom: calc(var(--h) + 8px);
   z-index: 5;
   padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(var(--ink), 0.14);
   border-radius: 10px;
-  background: rgba(24, 24, 27, 0.96);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background: var(--tip-bg);
+  -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+  backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+  box-shadow: var(--tip-shadow);
   font-size: 12px;
   color: var(--text);
   white-space: nowrap;
@@ -857,7 +1052,7 @@ button {
   text-align: center;
 }
 
-/* 날짜 칸: 공부 시간이 많을수록 배경이 밝아짐 (--a 값은 script.js 에서 계산) */
+/* 날짜 칸: 공부 시간이 많을수록 배경이 진해짐 (--a 값은 script.js 에서 계산, --heat 는 테마별 배율) */
 .day {
   display: flex;
   flex-direction: column;
@@ -868,7 +1063,7 @@ button {
   padding: 6px 2px 6px;
   border: 1px solid transparent;
   border-radius: 12px;
-  background: rgba(255, 255, 255, var(--a, 0.03));
+  background: rgba(var(--ink), calc(var(--a, 0.03) * var(--heat)));
   font-variant-numeric: tabular-nums;
 }
 
@@ -894,16 +1089,16 @@ button {
 
 /* 오늘 강조 */
 .day.is-today {
-  border-color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  border-color: rgba(var(--ink), 0.7);
+  box-shadow: 0 0 18px rgba(var(--ink), 0.08);
 }
 
 .day.is-today .day__num {
   min-width: 22px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #ffffff;
-  color: #000000;
+  background: rgb(var(--ink));
+  color: var(--bg);
   font-weight: 700;
   text-align: center;
 }
@@ -934,7 +1129,7 @@ button {
 
 .demo-badge {
   position: fixed;
-  top: max(16px, env(safe-area-inset-top));
+  top: calc(max(16px, env(safe-area-inset-top)) + 58px); /* 테마 토글 바로 아래 */
   left: max(16px, env(safe-area-inset-left));
   z-index: 20;
   padding: 8px 14px;
@@ -956,7 +1151,7 @@ button {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--ink), 0.7);
   animation: boot-pulse 1.2s ease-in-out infinite;
 }
 
@@ -973,7 +1168,8 @@ button {
   justify-content: center;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  /* 위쪽은 좌측 상단 테마 토글과 겹치지 않을 만큼 띄움 */
+  padding: max(76px, calc(env(safe-area-inset-top) + 60px)) 16px max(24px, env(safe-area-inset-bottom));
 }
 
 .auth__card {
@@ -1015,7 +1211,10 @@ button {
   height: 40px;
   border: 1px solid var(--glass-border);
   border-radius: 8px;
-  background: linear-gradient(180deg, #1d1d20 0%, #161618 50%, #111113 50%, #0e0e10 100%);
+  background: var(--mini-face);
+  -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturate));
+  backdrop-filter: blur(12px) saturate(var(--glass-saturate));
+  box-shadow: inset 0 1px 1px var(--face-hl), 0 4px 12px rgba(0, 0, 0, 0.15);
   font-size: 26px;
   font-weight: 600;
   line-height: 1;
@@ -1029,7 +1228,7 @@ button {
   right: 0;
   top: 50%;
   height: 1px;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--hinge);
 }
 
 .mini-colon {
@@ -1037,8 +1236,8 @@ button {
   height: 16px;
   margin: 0 3px;
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2.5px) top / 4px 4px no-repeat,
-    radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2.5px) bottom / 4px 4px no-repeat;
+    radial-gradient(circle, rgba(var(--ink), 0.6) 2px, transparent 2.5px) top / 4px 4px no-repeat,
+    radial-gradient(circle, rgba(var(--ink), 0.6) 2px, transparent 2.5px) bottom / 4px 4px no-repeat;
 }
 
 /* 로그인 / 회원가입 전환 */
@@ -1046,9 +1245,9 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(var(--ink), 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--ink), 0.04);
 }
 
 .segmented button {
@@ -1064,9 +1263,9 @@ button {
 }
 
 .segmented button[aria-selected="true"] {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--seg-on-bg);
   color: var(--text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--seg-on-shadow);
 }
 
 .auth__form {
@@ -1093,9 +1292,9 @@ button {
   width: 100%;
   height: 52px;
   padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(var(--ink), 0.14);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--ink), 0.05);
   font: inherit;
   font-size: 16px;
   color: var(--text);
@@ -1108,15 +1307,15 @@ button {
 .field__input::placeholder { color: var(--text-3); }
 
 .field__input:focus {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(var(--ink), 0.45);
+  background: rgba(var(--ink), 0.08);
 }
 
-/* 브라우저 자동완성 시 노란/파란 배경 대신 어두운 배경 유지 */
+/* 브라우저 자동완성 시 노란/파란 배경 대신 테마 배경 유지 */
 .field__input:-webkit-autofill {
   -webkit-text-fill-color: var(--text);
-  -webkit-box-shadow: 0 0 0 100px #19191b inset;
-  caret-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 100px var(--autofill-bg) inset;
+  caret-color: var(--text);
   transition: background-color 9999s;
 }
 
@@ -1141,7 +1340,7 @@ button {
   line-height: 1.5;
 }
 
-.auth__msg.is-error { color: #ff9f9f; }
+.auth__msg.is-error { color: var(--error); }
 .auth__msg.is-info { color: var(--text); }
 
 .auth__submit {
@@ -1159,7 +1358,7 @@ button {
 .auth__setup {
   padding: 16px 18px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--ink), 0.05);
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-2);
@@ -1171,7 +1370,7 @@ button {
 .auth__setup code {
   padding: 1px 6px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--ink), 0.1);
   font-size: 12px;
 }
 
@@ -1180,31 +1379,32 @@ button {
 @media (hover: hover) and (pointer: fine) {
   .toggle-btn:hover,
   .menu-btn:hover,
+  .theme-toggle:hover,
   .auth__submit:hover:not(:disabled) {
     background: var(--glass-bg-hover);
     border-color: var(--glass-border-hover);
   }
 
-  .toggle-btn:hover { box-shadow: var(--shadow), 0 0 32px rgba(255, 255, 255, 0.06); }
-  .is-running .toggle-btn:hover { background: rgba(255, 255, 255, 0.16); }
+  .toggle-btn:hover { box-shadow: var(--shadow), 0 0 32px rgba(var(--ink), 0.06); }
+  .is-running .toggle-btn:hover { background: var(--running-bg-hover); }
 
   .icon-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(var(--ink), 0.08);
+    border-color: rgba(var(--ink), 0.12);
   }
 
   .text-btn:hover:not(:disabled) {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(var(--ink), 0.06);
   }
 
-  .text-btn--danger:hover:not(:disabled) { color: rgba(255, 150, 150, 0.95); }
+  .text-btn--danger:hover:not(:disabled) { color: var(--danger); }
 
   .segmented button:hover:not([aria-selected="true"]) { color: var(--text-2); }
   .field__toggle:hover { color: var(--text); }
 
-  .chart__col:hover .chart__bar { background: rgba(255, 255, 255, 0.5); }
-  .chart__col.is-today:hover .chart__bar { background: rgba(255, 255, 255, 0.92); }
+  .chart__col:hover .chart__bar { background: rgba(var(--ink), 0.5); }
+  .chart__col.is-today:hover .chart__bar { background: rgba(var(--ink), 0.9); }
   .chart__col:hover .chart__tip { opacity: 1; transform: translate(-50%, 0); }
   .chart__col.is-start:hover .chart__tip,
   .chart__col.is-end:hover .chart__tip { transform: translate(0, 0); }
@@ -1249,10 +1449,12 @@ button {
   .auth__card { gap: 14px; padding: 22px 18px 20px; }
   .auth__title { margin: 10px 0 6px; font-size: 21px; }
   .auth__desc { font-size: 13px; }
+  .auth { padding-top: max(72px, calc(env(safe-area-inset-top) + 60px)); }
   .auth__form { gap: 10px; }
   .field__input { height: 48px; }
   .field__toggle { top: 4px; }
   .auth__submit { height: 50px; }
+  .mini-flip { width: 26px; height: 34px; font-size: 22px; }
 }
 
 /* 가로로 낮은 화면 (휴대폰 가로 모드): 시계 외 요소를 줄여 시계에 높이를 더 줌 */
@@ -1270,5 +1472,68 @@ button {
   .is-running .clock__colon i,
   .is-running .status__dot,
   .boot__dot { animation: none; }
-  .panel, .overlay, .chart__bar { transition-duration: 0.01s; }
+  .panel, .overlay, .chart__bar, .theme-toggle__thumb { transition-duration: 0.01s; }
 }
+
+/* ---------- 15. 테마 전환 토글 (좌측 상단) ----------
+ *  [ ☀  ●☾ ]  ← 다크: 동그라미가 오른쪽(달)
+ *  [ ●☀  ☾ ]  ← 라이트: 동그라미가 왼쪽(해) */
+.theme-toggle {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 20;
+  width: 88px;
+  height: 48px;
+  padding: 5px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.25s, border-color 0.25s, transform 0.15s;
+}
+
+.theme-toggle:active { transform: scale(0.97); }
+
+.theme-toggle__track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+}
+
+/* 움직이는 동그라미: 다크일 때 오른쪽으로 40px 이동 */
+.theme-toggle__thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--thumb-bg);
+  box-shadow: var(--thumb-shadow);
+  transform: translateX(40px);
+  transition: transform 0.35s cubic-bezier(0.3, 1.3, 0.5, 1), background 0.3s;
+}
+
+:root[data-theme="light"] .theme-toggle__thumb { transform: translateX(0); }
+
+.theme-toggle__icon {
+  position: relative;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--text-3);
+  transition: color 0.3s;
+}
+
+/* 선택된 쪽 아이콘만 진하게 */
+.theme-toggle__icon--moon { color: var(--text); }
+:root[data-theme="light"] .theme-toggle__icon--moon { color: var(--text-3); }
+:root[data-theme="light"] .theme-toggle__icon--sun { color: var(--text); }

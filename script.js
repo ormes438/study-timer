@@ -11,6 +11,7 @@
  *  8. 화면 갱신 · 토스트
  *  9. 로그인 / 회원가입 / 로그아웃
  * 10. 이벤트 연결 & 초기화
+ *  (8-1. 다크 / 라이트 테마 전환 — 선택은 이 기기에 저장: studyTimer.theme)
  *
  * 데이터 흐름
  *  - 공부 기록은 Supabase 의 study_sessions 테이블에 계정(user_id)별로 저장됩니다.
@@ -723,6 +724,7 @@
     monthNext: $('#monthNext'),
     resetBtn: $('#resetBtn'),
     toast: $('#toast'),
+    themeToggle: $('#themeToggle'),
   };
 
   function openPanel() {
@@ -741,6 +743,7 @@
     el.menuBtn.setAttribute('aria-expanded', 'true');
     el.stage.inert = true;   // 패널이 열린 동안 뒤쪽 화면은 포커스/클릭 불가
     el.menuBtn.inert = true;
+    el.themeToggle.inert = true;
 
     updateAccountUI();
     renderStats(true);
@@ -759,6 +762,7 @@
     el.menuBtn.setAttribute('aria-expanded', 'false');
     el.stage.inert = false;
     el.menuBtn.inert = false;
+    el.themeToggle.inert = false;
 
     const hide = () => {
       if (!panelState.open) {
@@ -1048,6 +1052,37 @@
     toastTimer = setTimeout(() => el.toast.classList.remove('is-show'), ms);
   }
 
+  /* ---------- 8-1. 다크 / 라이트 테마 ----------
+   * 화면 색은 <html data-theme="dark|light"> 값 하나로 바뀝니다 (색 정의는 style.css 1, 1-1).
+   * 처음 열 때의 적용은 index.html <head> 의 작은 스크립트가 담당 (깜빡임 방지). */
+  const THEME_KEY = 'studyTimer.theme';
+
+  const currentTheme = () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
+  /** 테마 적용 + 토글 상태 + 브라우저 상단 색(모바일 주소창) 맞추기 */
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    const colorScheme = document.querySelector('meta[name="color-scheme"]');
+    if (themeColor) themeColor.setAttribute('content', theme === 'light' ? '#ffffff' : '#000000');
+    if (colorScheme) colorScheme.setAttribute('content', theme);
+    el.themeToggle.setAttribute('aria-checked', String(theme === 'dark'));
+    el.themeToggle.title = theme === 'dark' ? '라이트 모드로 바꾸기' : '다크 모드로 바꾸기';
+  }
+
+  function toggleTheme() {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    try { window.localStorage.setItem(THEME_KEY, next); } catch (err) { /* 저장 못 해도 지금 화면은 바뀜 */ }
+
+    // 지원하는 브라우저에서는 화면 전체가 부드럽게 바뀜
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (typeof document.startViewTransition === 'function' && !reduceMotion) {
+      document.startViewTransition(() => applyTheme(next));
+    } else {
+      applyTheme(next);
+    }
+  }
+
   /* ---------- 9. 로그인 / 회원가입 / 로그아웃 ---------- */
   let authMode = 'login';
   let authBusy = false;
@@ -1277,6 +1312,7 @@
     el.overlay.addEventListener('click', () => closePanel());
     el.resetBtn.addEventListener('click', resetAll);
     el.logoutBtn.addEventListener('click', logout);
+    el.themeToggle.addEventListener('click', toggleTheme);
 
     el.weekPrev.addEventListener('click', () => { panelState.weekOffset--; renderWeek(getTotals(), true); });
     el.weekNext.addEventListener('click', () => {
@@ -1310,9 +1346,10 @@
 
     // 키보드: Esc = 패널 닫기, Space = 시작/정지 (타이머 화면 · 패널이 닫혀 있을 때)
     const isSpace = (e) => e.code === 'Space' || e.key === ' ';
-    // 시작/정지 버튼 자체에 포커스가 있으면 브라우저 기본 동작(클릭)에 맡김
+    // 시작/정지 버튼이나 테마 토글에 포커스가 있으면 브라우저 기본 동작(클릭)에 맡김
     const spaceIsTimerKey = (e) =>
-      isSpace(e) && !!user && document.body.dataset.view === 'app' && !panelState.open && e.target !== el.toggleBtn;
+      isSpace(e) && !!user && document.body.dataset.view === 'app' && !panelState.open &&
+      e.target !== el.toggleBtn && e.target !== el.themeToggle;
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && panelState.open) {
@@ -1366,6 +1403,10 @@
 
     // 같은 기기의 다른 탭에서 기록이 바뀌면 동기화
     window.addEventListener('storage', (e) => {
+      if (e.key === THEME_KEY) { // 다른 탭에서 테마를 바꾸면 여기도 따라 바뀜
+        applyTheme(e.newValue === 'light' ? 'light' : 'dark');
+        return;
+      }
       if (DEMO || !user) return;
       if (e.key !== null && !e.key.startsWith(keyFor(user.id, ''))) return;
       if (e.key === userKey('notice')) {
@@ -1394,6 +1435,7 @@
   }
 
   function init() {
+    applyTheme(currentTheme()); // <head> 에서 정한 테마에 토글 표시를 맞춤
     bindEvents();
     setInterval(tick, TICK_MS);
     if (!storageAvailable) warnStorage();

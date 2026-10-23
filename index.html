@@ -14,20 +14,49 @@
   <meta name="format-detection" content="telephone=no" />
   <title>공부 타이머</title>
 
+  <!-- 저장된 테마(다크/라이트)를 화면이 그려지기 전에 적용 → 새로고침해도 깜빡이지 않음 -->
+  <script>
+    (function () {
+      var theme = 'dark';
+      try { if (localStorage.getItem('studyTimer.theme') === 'light') theme = 'light'; } catch (e) {}
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'light') {
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
+        document.querySelector('meta[name="color-scheme"]').setAttribute('content', 'light');
+      }
+    })();
+  </script>
+
   <!-- 폰트: 숫자·영문은 Inter, 한글은 Pretendard (불러오지 못하면 system-ui 로 대체) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- ?v=숫자 : 파일을 고칠 때마다 숫자를 올리면 브라우저가 예전 파일 대신 새 파일을 받아요 -->
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body data-view="boot">
   <!-- 배경 조명: 유리 질감이 드러나도록 아주 옅은 빛 번짐 (원치 않으면 이 div 삭제) -->
   <div class="ambient" aria-hidden="true">
     <span class="ambient__orb ambient__orb--a"></span>
     <span class="ambient__orb ambient__orb--b"></span>
+    <span class="ambient__orb ambient__orb--c"></span>
   </div>
+
+  <!-- 좌측 상단: 다크 / 라이트 테마 전환 토글 -->
+  <button class="theme-toggle glass" id="themeToggle" type="button" role="switch" aria-checked="true" aria-label="다크 모드">
+    <span class="theme-toggle__track" aria-hidden="true">
+      <span class="theme-toggle__thumb"></span>
+      <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+      </svg>
+      <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24">
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+      </svg>
+    </span>
+  </button>
 
   <!-- 로그인 상태 확인 중 -->
   <div class="boot" id="bootView" aria-label="불러오는 중"><span class="boot__dot"></span></div>
@@ -199,7 +228,7 @@
 
   <!-- Supabase 클라이언트 → 연결 설정 → 앱 (이 순서대로 실행됨) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
-  <script src="config.js" defer></script>
-  <script src="script.js" defer></script>
+  <script src="config.js?v=3" defer></script>
+  <script src="script.js?v=3" defer></script>
 </body>
 </html>
