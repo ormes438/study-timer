@@ -74,6 +74,7 @@
   --orb-a: rgba(72, 104, 255, 0.26);              /* 블루 */
   --orb-b: rgba(156, 96, 255, 0.2);               /* 퍼플 */
   --orb-c: rgba(32, 196, 196, 0.12);              /* 청록 */
+  --orb-d: transparent;                           /* (라이트 테마에서만 사용) */
   /* 상단 모서리 조명 (왼쪽 위가 주광원 → 유리 테두리 반짝임 방향과 일치). 끄려면 둘 다 transparent */
   --light-a: rgba(225, 235, 255, 0.16);           /* 왼쪽 위 */
   --light-b: rgba(225, 235, 255, 0.07);           /* 오른쪽 위 */
@@ -133,58 +134,64 @@
   --bg: #ffffff;
   --text: rgba(0, 0, 0, 0.87);
   --text-2: rgba(0, 0, 0, 0.6);
-  --text-3: rgba(0, 0, 0, 0.48);
+  --text-3: rgba(0, 0, 0, 0.5);
   --error: #d33a3a;
   --warn: #b36200;
   --danger: #d33a3a;
 
-  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.42) 100%);
-  --glass-bg-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.6) 100%);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-border-hover: rgba(0, 0, 0, 0.12);
+  /* ① 유리를 더 투명하게 → 뒤의 색이 많이 비침 */
+  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.24) 100%);
+  --glass-bg-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.4) 100%);
+  --glass-border: rgba(30, 40, 90, 0.07);
+  --glass-border-hover: rgba(30, 40, 90, 0.14);
+  /* ② 입체 가장자리: 왼쪽 위는 밝은 반사광, 오른쪽 아래는 옅은 그림자 선 → 유리 두께가 느껴짐 */
   --glass-rim: linear-gradient(140deg,
-    rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.55) 30%,
-    rgba(255, 255, 255, 0.2) 60%, rgba(255, 255, 255, 0.85) 100%);
+    rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 28%, rgba(255, 255, 255, 0) 52%,
+    rgba(40, 50, 110, 0.06) 78%, rgba(40, 50, 110, 0.16) 100%);
+  --glass-saturate: 150%;               /* 비치는 색의 선명도 (높을수록 색이 진해짐) */
+  /* ⑥ 그림자에 은은한 푸른빛 → 카드가 떠 있는 느낌 */
   --shadow:
-    0 16px 40px rgba(40, 50, 90, 0.1),
-    0 2px 6px rgba(40, 50, 90, 0.06),
+    0 18px 44px rgba(70, 90, 180, 0.16),
+    0 3px 10px rgba(70, 90, 180, 0.08),
     inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.5),
-    inset 0 0 24px rgba(255, 255, 255, 0.35);
+    inset 0 -1px 1px rgba(40, 50, 110, 0.05),
+    inset 0 0 20px rgba(255, 255, 255, 0.4);
 
-  --panel-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
-  --overlay-bg: rgba(20, 24, 40, 0.14);
-  --tip-bg: rgba(255, 255, 255, 0.9);
-  --tip-shadow: 0 8px 24px rgba(40, 50, 90, 0.14), inset 0 1px 0 rgba(255, 255, 255, 1);
-  --running-bg: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)),
-                linear-gradient(160deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.35) 100%);
-  --running-bg-hover: linear-gradient(rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0.07)),
-                      linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.45) 100%);
-  --seg-on-bg: linear-gradient(160deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
-  --seg-on-shadow: 0 2px 8px rgba(40, 50, 90, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff;
-  --thumb-bg: linear-gradient(160deg, #ffffff 0%, rgba(255, 255, 255, 0.85) 100%);
-  --thumb-shadow: 0 2px 8px rgba(40, 50, 90, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff;
+  --panel-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.45) 100%);
+  --overlay-bg: rgba(40, 50, 100, 0.12);
+  --tip-bg: rgba(255, 255, 255, 0.75);
+  --tip-shadow: 0 8px 24px rgba(70, 90, 180, 0.18), inset 0 1px 0 #ffffff;
+  --running-bg: linear-gradient(rgba(40, 50, 110, 0.06), rgba(40, 50, 110, 0.06)),
+                linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.22) 100%);
+  --running-bg-hover: linear-gradient(rgba(40, 50, 110, 0.08), rgba(40, 50, 110, 0.08)),
+                      linear-gradient(160deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.3) 100%);
+  --seg-on-bg: linear-gradient(160deg, #ffffff 0%, rgba(255, 255, 255, 0.75) 100%);
+  --seg-on-shadow: 0 2px 10px rgba(70, 90, 180, 0.16), 0 0 0 1px rgba(30, 40, 90, 0.05), inset 0 1px 1px #ffffff;
+  --thumb-bg: linear-gradient(160deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  --thumb-shadow: 0 2px 10px rgba(70, 90, 180, 0.22), 0 0 0 1px rgba(30, 40, 90, 0.05), inset 0 1px 1px #ffffff;
   --autofill-bg: #f3f3f7;
   --heat: 0.75;
 
-  --orb-a: rgba(110, 170, 255, 0.42);             /* 하늘색 */
-  --orb-b: rgba(255, 145, 195, 0.32);             /* 핑크 */
-  --orb-c: rgba(165, 135, 255, 0.3);              /* 라벤더 */
-  --light-a: rgba(255, 228, 190, 0.45);           /* 왼쪽 위: 따뜻한 햇살 */
+  /* ③ 배경 색 번짐 (+ 시계 왼쪽 뒤에 민트). 색이 너무 진하면 맨 끝 숫자(진하기)를 낮추세요 */
+  --orb-a: rgba(80, 150, 255, 0.28);              /* 하늘색 */
+  --orb-b: rgba(255, 110, 175, 0.2);              /* 핑크 */
+  --orb-c: rgba(150, 105, 255, 0.22);             /* 라벤더 (시계 오른쪽 뒤) */
+  --orb-d: rgba(70, 210, 190, 0.15);              /* 민트 (시계 왼쪽 뒤) */
+  --light-a: rgba(255, 228, 190, 0.4);            /* 왼쪽 위: 따뜻한 햇살 */
   --light-b: rgba(255, 236, 210, 0.25);           /* 오른쪽 위 */
 
-  --face-top: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.66) 100%);
-  --face-bottom: linear-gradient(180deg, rgba(255, 255, 255, 0.56) 0%, rgba(255, 255, 255, 0.44) 100%);
-  --flap-top-bg: linear-gradient(180deg, #ffffff 0%, #f6f6fb 100%);
-  --flap-bottom-bg: linear-gradient(180deg, #f1f1f7 0%, #ebebf3 100%);
+  --face-top: linear-gradient(180deg, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0.44) 100%);
+  --face-bottom: linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0.26) 100%);
+  --flap-top-bg: linear-gradient(180deg, #fbfbfe 0%, #f0f1f9 100%);
+  --flap-bottom-bg: linear-gradient(180deg, #e9ebf5 0%, #e3e5f1 100%);
   --face-hl: rgba(255, 255, 255, 1);
-  --face-sheen: rgba(255, 255, 255, 0.6);
-  --mini-face: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.66) 50%, rgba(255, 255, 255, 0.56) 50%, rgba(255, 255, 255, 0.44) 100%);
+  --face-sheen: rgba(255, 255, 255, 0.7);
+  --mini-face: linear-gradient(180deg, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0.44) 50%, rgba(255, 255, 255, 0.36) 50%, rgba(255, 255, 255, 0.26) 100%);
   --digit: #1c1c1f;
   --digit-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
-  --hinge: rgba(0, 0, 0, 0.08);
+  --hinge: rgba(40, 50, 110, 0.1);
   --hinge-hl: rgba(255, 255, 255, 0.8);
-  --flip-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 20px 44px rgba(40, 50, 90, 0.14), 0 3px 8px rgba(40, 50, 90, 0.08);
+  --flip-shadow: 0 0 0 1px rgba(30, 40, 90, 0.05), 0 22px 48px rgba(70, 90, 180, 0.18), 0 4px 10px rgba(70, 90, 180, 0.1);
   --shade-fall: rgba(0, 0, 0, 0.14);
   --shade-rise-from: rgba(0, 0, 0, 0.16);
   --shade-rise-to: rgba(0, 0, 0, 0.03);
@@ -308,9 +315,20 @@ button {
   animation: drift-c 54s ease-in-out infinite alternate;
 }
 
+/* 시계 왼쪽 뒤 (라이트 테마에서만 보임) */
+.ambient__orb--d {
+  top: calc(50% - 26vmax);
+  left: -14vmax;
+  width: 52vmax;
+  height: 52vmax;
+  background: radial-gradient(circle, var(--orb-d) 0%, transparent 62%);
+  animation: drift-d 50s ease-in-out infinite alternate;
+}
+
 @keyframes drift-a { to { transform: translate(14vmax, 10vmax); } }
 @keyframes drift-b { to { transform: translate(-12vmax, -8vmax); } }
 @keyframes drift-c { to { transform: translate(-22vmax, 6vmax); } }
+@keyframes drift-d { to { transform: translate(18vmax, -8vmax); } }
 
 /* 상단 모서리 조명: 화면 위쪽 모서리에서 은은하게 내려오는 빛 (유리가 빛을 받는 느낌) */
 .ambient::before,

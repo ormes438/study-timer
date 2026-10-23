@@ -1064,7 +1064,9 @@
     document.documentElement.setAttribute('data-theme', theme);
     const themeColor = document.querySelector('meta[name="theme-color"]');
     const colorScheme = document.querySelector('meta[name="color-scheme"]');
-    if (themeColor) themeColor.setAttribute('content', theme === 'light' ? '#ffffff' : '#000000');
+    // 모바일 주소창 색 = 지금 테마의 배경색 (style.css 의 --bg)
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    if (themeColor) themeColor.setAttribute('content', bg || (theme === 'light' ? '#ffffff' : '#000000'));
     if (colorScheme) colorScheme.setAttribute('content', theme);
     el.themeToggle.setAttribute('aria-checked', String(theme === 'dark'));
     el.themeToggle.title = theme === 'dark' ? '라이트 모드로 바꾸기' : '다크 모드로 바꾸기';
